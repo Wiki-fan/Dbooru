@@ -1,0 +1,28 @@
+extends base
+
+block title
+	|Main
+
+block left
+	| {% show_all_tags %}
+	a(href='#{booru.url["add_picture"]}') Upload your picture
+	br 
+	a(href="{% url 'user_list' %}") All users
+	br
+
+block main
+	- foreach( picture; booru.pics.getAll() )
+		.pic
+			a(href='posts/ #{ picture.id }')
+				img.thumbnails(src='#{ picture.thumbnail_url }', alt='#{ picture.name }')
+	//.pagination
+	//	span.step-links
+	//	| {% if pictures.has_previous %}
+	//	a(href='?{% query_transform request page=pictures.previous_page_number %}') previous
+	//	|{% endif %}
+	//	span.current Page {{ pictures.number }} of {{ pictures.paginator.num_pages }}.
+	//	|{% if pictures.has_next %}
+	//	a(href='?{% query_transform request page=pictures.next_page_number %}') next
+	//	|{% endif %}*/
+
+block footer

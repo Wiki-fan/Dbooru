@@ -1,0 +1,18 @@
+﻿extends base
+
+block title
+	|Main
+
+block left
+
+block main
+	form#login_form(method='get', action=#{ booru.url["user_login"] }')
+		p
+			label(for="username") Username: 
+			input(type='text', name='username', value='', size='50')
+		p
+			label(for="password") Password: 
+			input(type='password', name='password', value='', size='50')  
+		input(type='submit', name='submit', value='Login')
+
+block footer

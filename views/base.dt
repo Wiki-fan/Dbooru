@@ -1,0 +1,31 @@
+﻿doctype html
+head
+	title 
+		|mahBooru - 
+		block title
+			|nothing
+	link(rel='stylesheet', type='text/css', href='css/main.css')
+body
+	#header
+		h1#site_title mahBooru
+	#right
+		| {% if user.is_authenticated %}
+		p Glad to see you, 
+		a(href='#{booru.url["user_profile"]}?{% query_transform request user=user.username %}')  {{ user.username }} !          
+		a(href='#{booru.url["logout"]}?next=/') Logout
+		|         {% else %}          
+		a(href='#{booru.url["register"]}') Register
+		a(href='#{booru.url["login"]}') Login
+		|         {% endif %}
+	#page
+		#left
+			| {% show_tag_search %}
+			block left
+			a(href='#{booru.url["index"]}') Back to main
+		#main
+			block main
+			p Main content
+	#footer
+		p Running mahBooru. 
+		a(href='#{booru.url["about"]}') About
+		block footer

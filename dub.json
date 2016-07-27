@@ -1,0 +1,23 @@
+{
+	"authors": [
+		"wiki-fan"
+	],
+	"name": "dbooru",
+	"license": "WTFPL",
+	"copyright": " ",
+	"description": "A simple vibe.d server application.",
+	"dependencies": {
+		"vibe-d": "~>0.7.26",
+		"imaged": "~>1.0.1"
+	},
+	"configurations": [
+		{
+			"name": "application",
+			"targetType": "executable",
+			"versions": ["VibeDefaultMain"]
+		},
+		{
+			"name": "library"
+		}
+	]
+}

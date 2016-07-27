@@ -1,0 +1,30 @@
+﻿extends base
+
+block title
+	| Add picture
+
+block left
+
+block main
+	h1 Add a Picture
+	form(id="picture_upload_form",method="post",action='#{booru.url["add_picture"]}',enctype="multipart/form-data")
+		p
+			label(for="name") Name
+			input(name="name", type='text')
+		p
+			label(for="src") Source of image
+			input(name="src", type="text")
+		p
+			label(for="file")
+			input(name="file", type="file")
+		p
+			label(for="tags")
+			input(name="tags", type="text")
+		p
+			label(for="rating") Rating
+			select(name="rating")
+				option(name='s',value='s') s
+				option(name='q',value='q') q
+				option(name='e',value='e') e
+		input(type="submit",name="submit",value="Upload!")
+	a(href='#{booru.url["index"]}') Back to main
