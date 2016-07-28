@@ -23,12 +23,12 @@ mixin template BsonConvertible()
 
 struct User
 {
-	bool loggedIn;
+	bool loggedIn = false;
 	string name;
 	string nickname;
 	string password;
 
-	mixin BsonConvertible;
+	//mixin BsonConvertible;
 	/*Bson toBson()
 	{
 		Bson[string] ret;
@@ -44,7 +44,7 @@ struct User
 	}*/
 }; 
 
-unittest {
+/*unittest {
 	User usr;
 	Bson bson = usr.toBson();
-}
+}*/

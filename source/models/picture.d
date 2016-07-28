@@ -12,6 +12,7 @@ struct Picture
 	string[] tags;
 	char rating;
 	int score;
+	string uploaded_by;
 
 	
 	this(int id, string name, string src)
@@ -21,7 +22,7 @@ struct Picture
 		this.src = src;
 	}
 
-	Bson toBson()
+	/+Bson toBson()
 	{
 		Bson[string] ret;
 		/*foreach(m; __traits(allMembers, Picture)) {
@@ -42,7 +43,7 @@ struct Picture
 		typeof(this) ret;
 		deserializeBson(ret, bson);
 		return ret;
-	}
+	}+/
 	
 };
 

@@ -1,0 +1,8 @@
+extends base
+
+block title 
+	Error
+block main
+	h1 #{error.code}
+	p You are lucky. #{error.message}
+	a(href="/") Return to the homepage.

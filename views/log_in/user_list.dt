@@ -1,0 +1,12 @@
+﻿extends base
+
+block title 
+	p User list
+
+block left
+
+block main
+	- foreach( user; booru.users.getAll() )
+		div.user
+			a(href='user_profile/#{ user.nickname }') #{ user.nickname }
+			| #{ user.name }

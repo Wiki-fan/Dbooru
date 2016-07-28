@@ -1,12 +1,10 @@
 ﻿extends base
+
 block title 
 	|About
-block left
+
 block main
 	h1 About
 	p
 		| Source: 
-		a(href='https://github.com/Wiki-fan/mahBooru') https://github.com/Wiki-fan/mahBooru
-	a(href='#{booru.url["index"]}') Return to the homepage.
-	br
-
+		a(href='https://github.com/Wiki-fan/mahBooru') https://github.com/Wiki-fan/Dbooru
