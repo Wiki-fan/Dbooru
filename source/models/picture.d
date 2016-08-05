@@ -43,18 +43,14 @@ struct Picture
 
 };
 
-class PictureManager : Manager!(Picture)
+/*class PictureManager : Manager!(Picture)
 {
-
-
-
-
 
 	override void add(Picture picture) 
 	{
 		super.add(picture);
 	}
-};
+};*/
 
 unittest 
 {

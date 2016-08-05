@@ -18,7 +18,7 @@ block main
 			label(for="file")
 			input(name="file", type="file")
 		p
-			label(for="tags")
+			label(for="tags") Tags (separated by whitespaces)
 			input(name="tags", type="text")
 		p
 			label(for="rating") Rating

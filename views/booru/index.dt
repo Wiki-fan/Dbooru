@@ -18,18 +18,23 @@ block main
 			a(href='/posts/#{ picture.id }')
 				img.thumbnails(src='#{ picture.thumbnail_url }', alt='#{ picture.name }')
 	.pagination
-	- booru.pics.paginator.setPageFromQuery(req);
+	- paginator.setPageFromQuery(req);
+	- paginator.init(totalCount);
 	- auto newQuery = req.query.dup;
-	- foreach(i; booru.pics.paginator.getNeighbourhood(5))
+	- newQuery["page"] = to!string(paginator.getFirstPage());
+	a(href='/?#{ newQuery.urlEncode }') &lt;&lt;
+	- newQuery["page"] = to!string(paginator.getPrevPage());
+	a(href='/?#{ newQuery.urlEncode }') &lt;
+	- foreach(i; paginator.getNeighbourhood(5))
 		- newQuery["page"] = to!string(i);
-		a(href='/?#{ newQuery.urlEncode }') #{ i } 
-	//	span.step-links
-	//	| {% if pictures.has_previous %}
-	//	a(href='?{% query_transform request page=pictures.previous_page_number %}') previous
-	//	|{% endif %}
-	//	span.current Page {{ pictures.number }} of {{ pictures.paginator.num_pages }}.
-	//	|{% if pictures.has_next %}
-	//	a(href='?{% query_transform request page=pictures.next_page_number %}') next
-	//	|{% endif %}*/
+		a(href='/?#{ newQuery.urlEncode }') 
+			- if(i == paginator.page)
+				b #{ i } 
+			- else 
+				| #{ i } 
+	- newQuery["page"] = to!string(paginator.getNextPage());
+	a(href='/?#{ newQuery.urlEncode }') &gt;
+	- newQuery["page"] = to!string(paginator.getLastPage());
+	a(href='/?#{ newQuery.urlEncode }') &gt;&gt;
 
 block footer

@@ -11,11 +11,9 @@ shared static this()
 	DerelictFI.load();
 	auto booru = new Booru;
 	auto settings = new HTTPServerSettings;
-	/*settings.port = 8080;
-	settings.bindAddresses = ["::1", "127.0.0.1"];
-	settings.sessionStore = new MemorySessionStore;*/
 	settings.registerBooruSettings(booru.settings);
 	auto router = new URLRouter;
+	//setLogLevel(LogLevel.debug_);
 	router.get("*", serveStaticFiles("public/"));
 	//settings.errorPageHandler = toDelegate(&errorPage);
 	router.registerWebInterface(booru);
@@ -58,7 +56,15 @@ private:
 	bool[string] tags;
 }
 
-
+unittest {
+	// Incorrect.
+	TagString ts = TagString("first, second, third", ", ");
+	assert(ts.toQueryString() == "first,second,third");
+	ts.add("test");
+	assert(ts.toQueryString(" ") == "first second third test");
+	ts.remove("first");
+	assert(ts.toQueryString(", ") == "second, third, test");
+}
 
 final class Booru
 {
@@ -71,32 +77,27 @@ final class Booru
 
 	this()
 	{
-		pics = new Manager!(Picture);
-		users = new Manager!(User);
-		tags = new Manager!Tag;
 		settings = new BooruSettings;
+		pics = new Manager!(Picture)(settings);
+		users = new Manager!(User)(settings);
+		tags = new Manager!Tag(settings);
 		booru = this;
 	}
 
 	@method(HTTPMethod.GET)
 	void index(HTTPServerRequest req, scope HTTPServerResponse res, int page = 1)
 	{
-		//writeln(request.queryString);
 		string* tags = ("tags" in req.query);
 		Picture[] pictures;
+		int totalCount;
 		if (tags is null || *tags == "") {
-			//logInfo(serializeToBson(["id":["$gte":(page-1)*settings.postsOnPage, "$lt":page*settings.postsOnPage]]).toString());
-			pictures = pics.getAll(serializeToBson(["id":["$gte":(page-1)*settings.postsOnPage, "$lt":page*settings.postsOnPage]]));
+			// If tags unspecified or empty, display all pictures.
+			pictures = pics.getPage(Bson.emptyObject(), page, totalCount);
 		} else {
-			//logInfo(bson.toString());
-			pictures = pics.getAll( serializeToBson(
-					[
-						"tags":serializeToBson(["$all":(*tags).split(',')]), 
-						"id":serializeToBson(["$gte":(page-1)*settings.postsOnPage, "$lt":page*settings.postsOnPage])
-					]
-			) );
+			pictures = pics.getPage( serializeToBson( ["tags":serializeToBson(["$all":(*tags).split(',')])] ), page, totalCount );
 		}
-		render!("booru/index.dt", booru, pictures);
+		auto paginator = booru.pics.paginator;
+		render!("booru/index.dt", booru, pictures, totalCount, paginator);
 	}
 
 	@method(HTTPMethod.POST)
@@ -160,9 +161,7 @@ final class Booru
 		}
 
 		// File size.
-		File f = File(origFileName, "r");
-		picture.file_size = f.size;
-		f.close();
+		picture.file_size = std.file.getSize(origFileName);
 
 		FREE_IMAGE_FORMAT fmt = FreeImage_GetFileType(toStringz(origFileName), 0);
 		FIBITMAP* bmp = FreeImage_Load(fmt, toStringz(origFileName), 0);

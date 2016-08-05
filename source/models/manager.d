@@ -1,14 +1,14 @@
 ﻿module models.manager;
 import vibe.d;
-
+import settings;
 /**
  * Class that stores values of type T in MongoDB database, providing inner counter for "id" field.
  */
 class Manager(T)
 {
 	Paginator!T paginator;
-
-	this()
+	BooruSettings settings;
+	this(BooruSettings settings)
 	{
 		database = connectMongoDB("127.0.0.1").getDatabase("Dbooru");
 		// Initialize counter with 0 if don't have any value. Notice that "hot" (without restarting server) removal of counters will be incorrect.
@@ -16,36 +16,30 @@ class Manager(T)
 		if ( bson == Bson(null) ) {
 			getCounters().insert(serializeToBson(["name":T.stringof, "value":"0"]));
 		}
-		paginator = new Paginator!T(this, 2);
+		this.settings = settings;
+		paginator = new Paginator!T(this.settings.postsOnPage);
 	}
 
-	T[] getAll()
+	T[] getAll(Bson query = Bson.emptyObject)
 	{
 		T[] ret;
-		foreach(pic; getCollection().find()) {
-			//logInfo(pic.toString());
+		foreach(pic; getCollection().find(query)) {
 			auto p = fromBson(pic);
 			ret ~= p;
 		}
 		return ret;
 	}
 
-	T[] getAll(string[string] query)
+	T[] getPage(Bson query, int page, out int totalCount)
 	{
 		T[] ret;
-		foreach(pic; getCollection().find(query)) {
-			//logInfo(pic.toString());
-			auto p = fromBson(pic);
-			ret ~= p;
-		}
-		return ret;
-	}
-
-	T[] getAll(Bson query)
-	{
-		T[] ret;
-		foreach(pic; getCollection().find(query)) {
-			//logInfo(pic.toString());
+		// Workaround because there isn't MongoCursor.size() function. Applying count() to cursor removes all items from it.
+		auto cursor = getCollection().find(query);
+		totalCount = cast(int)(getCollection().find(query).count());
+		// For some reasons we shouldn't use commented variant as it produces wrong results.
+		//cursor = cursor.limit(page*paginator.elementsOnPage).skip((page-1)*paginator.elementsOnPage);
+		cursor = cursor.skip((page-1)*paginator.elementsOnPage).limit(paginator.elementsOnPage);
+		foreach(pic; cursor) {
 			auto p = fromBson(pic);
 			ret ~= p;
 		}
@@ -74,23 +68,15 @@ class Manager(T)
 	
 	void add(T item)
 	{
-		logInfo(toBson(item).toString());
+		logInfo("Adding item: "~toBson(item).toString());
 		getCollection();
 		getCollection().insert(toBson(item));
 		increment();
-		paginator.refresh();
 	}
 	
 	void remove(int id)
 	{
 		getCollection().remove(["id":id]);
-	}
-
-	/// Represents loop going incrementally only forward. So deletions of elements will not cause counter to decrease.
-	struct OptimisticLoop
-	{
-		string name;
-		string value;
 	}
 
 	// Loop is represented as ["name":<type of stored value>,"value":<actual value of counter>].
@@ -109,17 +95,10 @@ private:
 
 	MongoCollection getCounters() { return database["counters"]; }
 
-	void increment()
-	{
-		int val = getNextIndex();
-		getCounters().update(["name":T.stringof], ["$set":["value": to!string(to!int(val)+1)]]);
-	}
-
 	/// Pack value val to Bson.
 	Bson toBson(T val)
 	{
 		Bson[string] ret;
-		//logInfo(serializeToBson(this).toString());
 		return serializeToBson(val);
 	}
 
@@ -131,24 +110,22 @@ private:
 		return ret;
 	}
 
+	// Class that does all pagination-specific math. Init it with elements count before use.
 	class Paginator(T)
 	{
 		int elementsCount;
 		int elementsOnPage;
 		int page;
 		int lastPage;
-		Manager!(T) manager;
 		
-		this(Manager!(T) manager, int elementsOnPage)
+		this( int elementsOnPage)
 		{
-			this.manager = manager;
 			this.elementsOnPage = elementsOnPage;
-			refresh();
 		}
 		
-		void refresh()
+		void init(int elementsCount)
 		{
-			elementsCount = manager.getNextIndex();
+			this.elementsCount = elementsCount;
 			lastPage = elementsCount % elementsOnPage == 0? elementsCount/elementsOnPage : elementsCount/elementsOnPage+1;
 		}
 		
@@ -166,14 +143,29 @@ private:
 		
 		int getNextPage()
 		{
-			return page==lastPage?lastPage:lastPage+1;
+			return page==lastPage?lastPage:page+1;
 		}
-		
+
+		int getFirstPage()
+		{
+			return 1;
+		}
+
 		int getLastPage()
 		{
 			return lastPage;
 		}
-		
+
+		/*int getMinElemOfPage(int page)
+		{
+			return (page-1)*elementsOnPage;
+		}
+
+		int getMaxElemOfPage(int page)
+		{
+			return page*elementsOnPage-1;
+		}*/
+
 		int[] getNeighbourhood(int epsilon)
 		{
 			int[] ret;
@@ -184,6 +176,19 @@ private:
 			}
 			return ret;
 		}
+	}
+
+	/// Represents loop going incrementally only forward. So deletions of elements will not cause counter to decrease.
+	struct OptimisticLoop
+	{
+		string name;
+		string value;
+	}
+
+	void increment()
+	{
+		int val = getNextIndex();
+		getCounters().update(["name":T.stringof], ["$set":["value": to!string(to!int(val)+1)]]);
 	}
 };
 

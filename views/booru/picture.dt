@@ -3,9 +3,9 @@ block title
 	| #{ picture.name }
 block left
 	p Tags:
-		ul.tag_list
-	- foreach(tag; picture.tags)
-		- print_tag(tag);
+	ul.tag_list
+		- foreach(tag; picture.tags)
+			- print_tag(tag);
 	p ID: #{ picture.id }
 	p
 		a(href='#{ picture.src }') Source
@@ -15,7 +15,7 @@ block left
 		a(href='/user_profile/#{ picture.uploaded_by }')  #{ picture.uploaded_by }
 	p Date: #{ picture.upload_datetime.toSimpleString() }
 	p Size: #{ picture.file_size}
-	p Dimensions: #{ picture.image_width } x #{ picture.image_height } 
+	p Dimensions: #{ picture.image_width }x#{ picture.image_height } 
 block main
 	h3 #{ picture.name }
 	a(href='/#{ picture.file_url }')
