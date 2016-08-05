@@ -1,9 +1,16 @@
+html, body, div, h1 {
+	margin:0;
+	padding:0;
+}
+
 div#header {
-    clear: both;
-    display: block;
+    /*clear: both;*/
+    overflow:auto;
+    display: inline-block;
     /* margin-top: 10 px;*/
     position: relative;
     vertical-align: top;
+    /*background-color:#bfbfbf;*/
 }
 
 h1#site_title {
@@ -18,10 +25,20 @@ div#right {
     width: 100px;
 }
 
+div#page {
+    clear: left;
+    overflow:auto;
+}
+
 div#left {
     float: left;
     width: 200px;
     margin-left: 20px;
+}
+
+div#main {
+    float: left; 
+    display: inline;
 }
 
 div#footer {
@@ -29,18 +46,7 @@ div#footer {
     clear: both;
     text-align: center;
     padding-top: 30px;
-}
-
-div#page {
-    clear: both;
-    /*display:block;
-    position:relative;
-    overflow:visible;*/
-}
-
-div#main {
-    /* float: left; */
-    margin-left: 220px; /* TODO: fix it and make normal formatting */
+    padding-bottom: 5px;
 }
 
 div.pic {
@@ -63,11 +69,15 @@ img.thumbnails {
     margin: auto;
 }
 
+img.in_user_profile {
+	/*float:right;*/
+}
+
 div.pagination {
     text-align: center;
 }
 
 ul.tag_list {
     list-style-type: none;
-    margin-left: -20px;
+    padding-left:0px;
 }

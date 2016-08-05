@@ -39,8 +39,9 @@ body
 			p 
 				a(href='/logout') Logout
 		- else        
-			a(href='register') Register
-			a(href='login') Login
+			a(href='/register') Register
+			a(href='/login') Login
+
 	#page
 		#left
 			include booru/includes/tag_search

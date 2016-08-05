@@ -14,5 +14,8 @@ block main
 		p
 			label(for="password") Password: 
 			input(type='password', name='password')  
+		p
+			label(for="avatar")
+			input(name="avatar", type="file")
 		input(type='submit', name='submit', value='Register')
 	a(href="/") Return to the homepage.

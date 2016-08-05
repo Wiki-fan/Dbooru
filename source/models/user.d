@@ -29,6 +29,7 @@ struct User
 	string nickname;
 	string password;
 	DateTime registration_datetime;
+	string avatar_url;
 
 	//mixin BsonConvertible;
 	/*Bson toBson()

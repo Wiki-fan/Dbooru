@@ -227,6 +227,33 @@ final class Booru
 		usr.password = req.form.get("password");
 		usr.registration_datetime = cast(DateTime)Clock.currTime();
 
+		auto avatar_file = "avatar" in req.files;
+		if (avatar_file == null) {
+			usr.avatar_url = (settings.avatar_path~"DefaultAvatar.png").toNativeString();
+		} else {
+			string filename = to!string(usr.nickname)~extension((*avatar_file).filename.toString());
+			usr.avatar_url = (settings.avatar_path~filename).toNativeString();
+			string fullname = (settings.publicPath~usr.avatar_url).toNativeString();
+
+			// Moving file from temporary folder to media storage.
+			try moveFile(avatar_file.tempPath.toNativeString(), fullname);
+			catch (Exception e) {
+				logWarn("Failed to move file to destination folder: %s", e.msg);
+				logInfo("Performing copy+delete instead.");
+				copyFile(avatar_file.tempPath.toNativeString(), fullname);
+			}
+
+			FREE_IMAGE_FORMAT fmt = FreeImage_GetFileType(toStringz(fullname), 0);
+			writeln(fullname);
+			writeln(fmt == FIF_UNKNOWN);
+			FIBITMAP* bmp = FreeImage_Load(fmt, toStringz(fullname), 0);
+			removeFile(fullname);
+			writeln(bmp == null);
+			FIBITMAP* thumb = FreeImage_MakeThumbnail(bmp, settings.avatar_size, true);
+			FreeImage_Save(FIF_JPEG, thumb, toStringz((settings.publicPath~usr.avatar_url).toNativeString()), 0);
+			FreeImage_Unload(bmp);
+			FreeImage_Unload(thumb);
+		}
 		users.add(usr);
 
 		res.redirect("/login");

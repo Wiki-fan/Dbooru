@@ -18,23 +18,23 @@ block main
 			a(href='/posts/#{ picture.id }')
 				img.thumbnails(src='#{ picture.thumbnail_url }', alt='#{ picture.name }')
 	.pagination
-	- paginator.setPageFromQuery(req);
-	- paginator.init(totalCount);
-	- auto newQuery = req.query.dup;
-	- newQuery["page"] = to!string(paginator.getFirstPage());
-	a(href='/?#{ newQuery.urlEncode }') &lt;&lt;
-	- newQuery["page"] = to!string(paginator.getPrevPage());
-	a(href='/?#{ newQuery.urlEncode }') &lt;
-	- foreach(i; paginator.getNeighbourhood(5))
-		- newQuery["page"] = to!string(i);
-		a(href='/?#{ newQuery.urlEncode }') 
-			- if(i == paginator.page)
-				b #{ i } 
-			- else 
-				| #{ i } 
-	- newQuery["page"] = to!string(paginator.getNextPage());
-	a(href='/?#{ newQuery.urlEncode }') &gt;
-	- newQuery["page"] = to!string(paginator.getLastPage());
-	a(href='/?#{ newQuery.urlEncode }') &gt;&gt;
+		- paginator.setPageFromQuery(req);
+		- paginator.init(totalCount);
+		- auto newQuery = req.query.dup;
+		- newQuery["page"] = to!string(paginator.getFirstPage());
+		a(href='/?#{ newQuery.urlEncode }') &lt;&lt;
+		- newQuery["page"] = to!string(paginator.getPrevPage());
+		a(href='/?#{ newQuery.urlEncode }') &lt;
+		- foreach(i; paginator.getNeighbourhood(5))
+			- newQuery["page"] = to!string(i);
+			a(href='/?#{ newQuery.urlEncode }') 
+				- if(i == paginator.page)
+					b #{ i } 
+				- else 
+					| #{ i } 
+		- newQuery["page"] = to!string(paginator.getNextPage());
+		a(href='/?#{ newQuery.urlEncode }') &gt;
+		- newQuery["page"] = to!string(paginator.getLastPage());
+		a(href='/?#{ newQuery.urlEncode }') &gt;&gt;
 
 block footer

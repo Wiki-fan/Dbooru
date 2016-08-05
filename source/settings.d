@@ -6,6 +6,7 @@ class BooruSettings
 {
 	const int thumbnail_size = 150;
 	const int preview_size = 1000;
+	const int avatar_size = 300;
 	string databaseURL = "mongodb://localhost/";
 	string configName = "global";
 	string booruName = "Dbooru";
@@ -15,5 +16,6 @@ class BooruSettings
 	Path fullImagePath = "media/pictures/full/";
 	Path thumbnailImagePath = "media/pictures/thumbnail/";
 	Path previewImagePath = "media/pictures/preview/";
+	Path avatar_path = "media/avatars/";
 	int postsOnPage = 2;
 }
