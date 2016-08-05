@@ -1,13 +1,35 @@
-﻿doctype html
+﻿- import vibe.inet.webform, app, vibe.d;
+- void css(string file)
+	link(rel= 'stylesheet', type='text/css', href='/css/#{file}.css')
+
+- void print_tag(string tagname)
+	- import vibe.inet.webform, app, vibe.d;
+	li  
+		- auto query_tags = ("tags" in req.query);
+		- TagString tags;
+		- if (query_tags != null) tags = TagString(*query_tags, ","); else tags = TagString("", " ");
+		- auto newQuery = req.query.dup; 
+		- TagString newTags = tags; newTags.add(tagname); newQuery["tags"] = newTags.toQueryString();
+		a(href='/?#{ newQuery.urlEncode }') + 
+		//- logInfo(newQuery.urlEncode);
+		- newTags = tags; newTags.remove(tagname); newQuery["tags"] = newTags.toQueryString();
+		a(href='/?#{ newQuery.urlEncode }') x
+		- newTags = TagString(tagname, " "); newQuery["tags"] = newTags.toQueryString();
+		a(href='/?#{ newQuery.urlEncode }') #{ tagname }
+
+- string getQueryTags() 
+	- return ("tags" in req.query) is null || req.query["tags"] == "" ? "none": req.query["tags"];
+
+doctype html
 head
 	title 
-		|Dbooru - 
+		|#{ booru.settings.booruName } - 
 		block title
 			|nothing
-	link(rel='stylesheet', type='text/css', href='/css/main.css')
+	- css("main");
 body
 	#header
-		h1#site_title mahBooru
+		h1#site_title #{ booru.settings.booruName }
 	#right
 		- if (booru.m_user.loggedIn)
 			p 
@@ -21,12 +43,12 @@ body
 			a(href='login') Login
 	#page
 		#left
-			| {% show_tag_search %}
+			include booru/includes/tag_search
 			block left
 			a(href='/') Back to main
 		#main
 			block main
 	#footer
-		p Running Dbooru. 
+		p Running #{ booru.settings.booruName } — #{ booru.settings.booruDescription }. 
 		a(href='/about') About
 		block footer

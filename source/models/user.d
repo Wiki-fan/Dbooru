@@ -1,4 +1,5 @@
 module models.user;
+import std.datetime;
 import vibe.d;
 import models.bson_mixin;
 
@@ -27,6 +28,7 @@ struct User
 	string name;
 	string nickname;
 	string password;
+	DateTime registration_datetime;
 
 	//mixin BsonConvertible;
 	/*Bson toBson()

@@ -1,26 +1,22 @@
 ﻿module models.picture;
+import std.datetime;
 import vibe.d;
 import models.manager;
+import derelict.freeimage.freeimage;
 
 struct Picture
 {
 	int id;
 	string name;
 	string src;
-	int image_width, image_height;
+	ulong image_width, image_height;
 	string file_url, preview_url, thumbnail_url;
-	string[] tags;
+	ulong file_size;
+	string[] tags; // Warning: tags here are stored as strings, but tags in general tag manager have Tag type.
 	char rating;
 	int score;
 	string uploaded_by;
-
-	
-	this(int id, string name, string src)
-	{
-		this.id = id;
-		this.name = name;
-		this.src = src;
-	}
+	DateTime upload_datetime;
 
 	/+Bson toBson()
 	{
@@ -44,17 +40,38 @@ struct Picture
 		deserializeBson(ret, bson);
 		return ret;
 	}+/
-	
+
+};
+
+class PictureManager : Manager!(Picture)
+{
+
+
+
+
+
+	override void add(Picture picture) 
+	{
+		super.add(picture);
+	}
 };
 
 unittest 
 {
-	auto pic = new Manager!Picture();
-	pic.add(Picture(1, "testname", "testsrc"));
-	pic.add(Picture(2, "test2name", "test2src"));
-	auto pics = pic.getAll();
-	foreach (ref p; pics) {
-		logInfo(">"~ p.name ~ p.src);
+	import std.format;
+	auto pics = new Manager!Picture();
+	Picture pic1, pic2;
+	pic1.id = 1;
+	pic1.name = "testname";
+	pic1.src = "testsrc";
+	pic2.id = 2;
+	pic2.name = "test2name";
+	pic2.src = "test2src";
+	pics.add(pic1);
+	pics.add(pic2);
+	auto pics_array = pics.getAll();
+	foreach (ref p; pics_array) {
+		logInfo(format("> %s %s", p.name, p.src));
 	}
 
 }

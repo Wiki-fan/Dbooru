@@ -1,0 +1,5 @@
+﻿form#tag_search_form(method='post', action="/")
+	p
+		label(for="tag_string") Search:
+		input(type='text', name='tags')
+	input(type="submit",name="submit",value="search")

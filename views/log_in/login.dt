@@ -8,7 +8,7 @@ block left
 block main
 	form#login_form(method='post', action='login')
 		p
-			label(for="nickname") nickname: 
+			label(for="nickname") Nickname: 
 			input(type='text', name='nickname')
 		p
 			label(for="password") Password: 

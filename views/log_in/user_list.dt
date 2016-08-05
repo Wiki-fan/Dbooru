@@ -6,7 +6,14 @@ block title
 block left
 
 block main
-	- foreach( user; booru.users.getAll() )
-		div.user
-			a(href='user_profile/#{ user.nickname }') #{ user.nickname }
-			| #{ user.name }
+	table
+		tr
+			td Nickname
+			td Username
+			td Registration date
+		- foreach( user; booru.users.getAll() )
+			tr
+				td 
+					a(href='user_profile/#{ user.nickname }') #{ user.nickname }
+				td #{ user.name }
+				td #{ user.registration_datetime.toSimpleString() }

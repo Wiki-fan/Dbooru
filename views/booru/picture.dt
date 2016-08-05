@@ -5,8 +5,7 @@ block left
 	p Tags:
 		ul.tag_list
 	- foreach(tag; picture.tags)
-		a(href="post?{% query_replace tags=i %}")
-		li #{ tag }
+		- print_tag(tag);
 	p ID: #{ picture.id }
 	p
 		a(href='#{ picture.src }') Source
@@ -14,11 +13,11 @@ block left
 	p Score: #{ picture.score }
 	p Uploaded by: 
 		a(href='/user_profile/#{ picture.uploaded_by }')  #{ picture.uploaded_by }
-	p Date: {{ picture.upload_datetime|date:&quot;d M Y H:i&quot; }}
-	p Size: {{ picture.file_url.file.size|filesizeformat }}
+	p Date: #{ picture.upload_datetime.toSimpleString() }
+	p Size: #{ picture.file_size}
 	p Dimensions: #{ picture.image_width } x #{ picture.image_height } 
 block main
 	h3 #{ picture.name }
-	a(href='#{ picture.file_url }')
-		img(src='#{ picture.preview_url }', alt='Picture: #{ picture.name }')
+	a(href='/#{ picture.file_url }')
+		img(src='/#{ picture.preview_url }', alt='Picture: #{ picture.name }')
 

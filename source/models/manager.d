@@ -9,19 +9,42 @@ class Manager(T)
 	this()
 	{
 		database = connectMongoDB("127.0.0.1").getDatabase("Dbooru");
-		// Initialize counter with 0 if don't have any value.
+		// Initialize counter with 0 if don't have any value. Notice that "hot" (without restarting server) removal of counters will be incorrect.
 		auto bson = getCounters().findOne(["name":T.stringof]);
 		if ( bson == Bson(null) ) {
 			getCounters().insert(serializeToBson(["name":T.stringof, "value":"0"]));
 		}
 	}
 
-	T[string] getAll()
+	T[] getAll()
 	{
-		T[string] ret;
+		T[] ret;
 		foreach(pic; getCollection().find()) {
+			//logInfo(pic.toString());
 			auto p = fromBson(pic);
-			ret[p.name] = p;
+			ret ~= p;
+		}
+		return ret;
+	}
+
+	T[] getAll(string[string] query)
+	{
+		T[] ret;
+		foreach(pic; getCollection().find(query)) {
+			//logInfo(pic.toString());
+			auto p = fromBson(pic);
+			ret ~= p;
+		}
+		return ret;
+	}
+
+	T[] getAll(Bson query)
+	{
+		T[] ret;
+		foreach(pic; getCollection().find(query)) {
+			//logInfo(pic.toString());
+			auto p = fromBson(pic);
+			ret ~= p;
 		}
 		return ret;
 	}
@@ -46,16 +69,12 @@ class Manager(T)
 		logInfo(toBson(item).toString());
 		getCollection();
 		getCollection().insert(toBson(item));
+		increment();
 	}
 	
 	void remove(int id)
 	{
 		getCollection().remove(["id":id]);
-	}
-	
-	int getCount()
-	{
-		return cast(int) getCollection().find().count();
 	}
 
 	struct OptimisticLoop
@@ -65,17 +84,11 @@ class Manager(T)
 	}
 
 	// Loop is represented as ["name":<type of stored value>,"value":<actual value of counter>].
-	int getValue()
+	int getNextIndex()
 	{
 		OptimisticLoop data;
 		deserializeBson( data, getCounters().findOne(["name":T.stringof]) );
 		return to!int(data.value);
-	}
-
-	void increment()
-	{
-		int val = getValue();
-		getCounters().update(["name":T.stringof], ["$set":["value": to!string(to!int(val)+1)]]);
 	}
 
 private:
@@ -90,6 +103,12 @@ private:
 	MongoCollection getCounters()
 	{
 		return database["counters"];
+	}
+
+	void increment()
+	{
+		int val = getNextIndex();
+		getCounters().update(["name":T.stringof], ["$set":["value": to!string(to!int(val)+1)]]);
 	}
 
 	/// Pack value val to Bson.

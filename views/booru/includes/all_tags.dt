@@ -1,0 +1,14 @@
+﻿p Tags:
+	ul.tag_list
+		- foreach( tag; booru.tags.getAll() )
+			- print_tag(tag.name);
+
+	.pagination
+		span.step-links
+		| {% if tag_paginator.has_previous %}
+		a(href='?{% query_transform request tag_page=tag_paginator.previous_page_number %}') &lt;
+		|             {% endif %}         
+		span.current {{ tag_paginator.number }} of {{ tag_paginator.paginator.num_pages }}
+		|             {% if tag_paginator.has_next %}         
+		a(href='?{% query_transform request tag_page=tag_paginator.next_page_number %}')  &gt;
+		|             {% endif %}
