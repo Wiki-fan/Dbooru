@@ -58,6 +58,8 @@ private:
 	bool[string] tags;
 }
 
+
+
 final class Booru
 {
 	Manager!(Picture) pics;
@@ -87,7 +89,12 @@ final class Booru
 			pictures = pics.getAll(serializeToBson(["id":["$gte":(page-1)*settings.postsOnPage, "$lt":page*settings.postsOnPage]]));
 		} else {
 			//logInfo(bson.toString());
-			pictures = pics.getAll( serializeToBson(["tags":["$all":(*tags).split(',')]]) );
+			pictures = pics.getAll( serializeToBson(
+					[
+						"tags":serializeToBson(["$all":(*tags).split(',')]), 
+						"id":serializeToBson(["$gte":(page-1)*settings.postsOnPage, "$lt":page*settings.postsOnPage])
+					]
+			) );
 		}
 		render!("booru/index.dt", booru, pictures);
 	}
@@ -254,9 +261,4 @@ private:
 			res.redirect("login");
 		return m_user.nickname;
 	}
-
-	Bson formBsonQuery(T)(T dict)
-	{
-		return serializeToBson(dict);
-	}
-};
+}

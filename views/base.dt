@@ -7,8 +7,8 @@
 	li  
 		- auto query_tags = ("tags" in req.query);
 		- TagString tags;
+		- string[string] newQuery;
 		- if (query_tags != null) tags = TagString(*query_tags, ","); else tags = TagString("", " ");
-		- auto newQuery = req.query.dup; 
 		- TagString newTags = tags; newTags.add(tagname); newQuery["tags"] = newTags.toQueryString();
 		a(href='/?#{ newQuery.urlEncode }') + 
 		//- logInfo(newQuery.urlEncode);

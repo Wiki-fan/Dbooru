@@ -6,6 +6,8 @@ import vibe.d;
  */
 class Manager(T)
 {
+	Paginator!T paginator;
+
 	this()
 	{
 		database = connectMongoDB("127.0.0.1").getDatabase("Dbooru");
@@ -14,6 +16,7 @@ class Manager(T)
 		if ( bson == Bson(null) ) {
 			getCounters().insert(serializeToBson(["name":T.stringof, "value":"0"]));
 		}
+		paginator = new Paginator!T(this, 2);
 	}
 
 	T[] getAll()
@@ -63,6 +66,11 @@ class Manager(T)
 	{
 		return getCollection().findOne(query) != Bson(null);
 	}
+
+	ulong getCount(Bson query)
+	{
+		return getCollection().count(query);
+	}
 	
 	void add(T item)
 	{
@@ -70,6 +78,7 @@ class Manager(T)
 		getCollection();
 		getCollection().insert(toBson(item));
 		increment();
+		paginator.refresh();
 	}
 	
 	void remove(int id)
@@ -77,6 +86,7 @@ class Manager(T)
 		getCollection().remove(["id":id]);
 	}
 
+	/// Represents loop going incrementally only forward. So deletions of elements will not cause counter to decrease.
 	struct OptimisticLoop
 	{
 		string name;
@@ -95,15 +105,9 @@ private:
 	MongoDatabase database;
 
 	/// Gets collection where values of type T are stored.
-	MongoCollection getCollection()
-	{
-		return database[T.stringof];
-	}
+	MongoCollection getCollection() { return database[T.stringof]; }
 
-	MongoCollection getCounters()
-	{
-		return database["counters"];
-	}
+	MongoCollection getCounters() { return database["counters"]; }
 
 	void increment()
 	{
@@ -125,6 +129,61 @@ private:
 		T ret;
 		deserializeBson(ret, bson);
 		return ret;
+	}
+
+	class Paginator(T)
+	{
+		int elementsCount;
+		int elementsOnPage;
+		int page;
+		int lastPage;
+		Manager!(T) manager;
+		
+		this(Manager!(T) manager, int elementsOnPage)
+		{
+			this.manager = manager;
+			this.elementsOnPage = elementsOnPage;
+			refresh();
+		}
+		
+		void refresh()
+		{
+			elementsCount = manager.getNextIndex();
+			lastPage = elementsCount % elementsOnPage == 0? elementsCount/elementsOnPage : elementsCount/elementsOnPage+1;
+		}
+		
+		int setPageFromQuery(HTTPServerRequest req)
+		{
+			auto query_page = ("page" in req.query);
+			if (query_page != null) page = to!int(*query_page); else page = 1;
+			return page;
+		}
+		
+		int getPrevPage()
+		{
+			return page == 1? 1:page-1;
+		}
+		
+		int getNextPage()
+		{
+			return page==lastPage?lastPage:lastPage+1;
+		}
+		
+		int getLastPage()
+		{
+			return lastPage;
+		}
+		
+		int[] getNeighbourhood(int epsilon)
+		{
+			int[] ret;
+			for (int i = page-epsilon; i<=page+epsilon; ++i) {
+				if (i <=getLastPage() && i >= 1) {
+					ret ~= i;
+				}
+			}
+			return ret;
+		}
 	}
 };
 

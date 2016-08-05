@@ -17,13 +17,12 @@ block main
 		.pic
 			a(href='/posts/#{ picture.id }')
 				img.thumbnails(src='#{ picture.thumbnail_url }', alt='#{ picture.name }')
-	//.pagination
-	//	- auto query_page = ("page" in req.query);
-	//	- int page;
-	//	- if (query_page != null) page = to!int(*query_page); else page = 1;
-	//	- auto newQuery = req.query.dup; 
-	//	- newQuery["page"] = req.quer;
-	//	a(href='/?#{ newQuery.urlEncode }') + 
+	.pagination
+	- booru.pics.paginator.setPageFromQuery(req);
+	- auto newQuery = req.query.dup;
+	- foreach(i; booru.pics.paginator.getNeighbourhood(5))
+		- newQuery["page"] = to!string(i);
+		a(href='/?#{ newQuery.urlEncode }') #{ i } 
 	//	span.step-links
 	//	| {% if pictures.has_previous %}
 	//	a(href='?{% query_transform request page=pictures.previous_page_number %}') previous
