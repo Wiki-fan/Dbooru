@@ -1,4 +1,4 @@
-﻿- import vibe.inet.webform, app, vibe.d;
+﻿- import vibe.inet.webform, booru.booru, booru.tag_string, vibe.d;
 - void css(string file)
 	link(rel= 'stylesheet', type='text/css', href='/css/#{file}.css')
 

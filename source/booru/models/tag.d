@@ -1,6 +1,6 @@
-﻿module models.tag;
+﻿module booru.models.tag;
 import vibe.d;
-import models.manager;
+import booru.manager;
 
 struct Tag
 {

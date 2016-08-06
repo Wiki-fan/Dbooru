@@ -1,6 +1,7 @@
-﻿module models.manager;
+﻿module booru.manager;
 import vibe.d;
-import settings;
+import booru.settings, booru.mongo_manager;
+
 /**
  * Class that stores values of type T in MongoDB database, providing inner counter for "id" field.
  */
@@ -8,13 +9,15 @@ class Manager(T)
 {
 	Paginator!T paginator;
 	BooruSettings settings;
-	this(BooruSettings settings)
+
+	this(BooruSettings settings, MongoManager mongoManager)
 	{
-		database = connectMongoDB("127.0.0.1").getDatabase("Dbooru");
+		collection = mongoManager.getCollection(T.stringof);
+		counters = mongoManager.getCollection("counters");
 		// Initialize counter with 0 if don't have any value. Notice that "hot" (without restarting server) removal of counters will be incorrect.
-		auto bson = getCounters().findOne(["name":T.stringof]);
+		immutable auto bson = counters.findOne(["name":T.stringof]);
 		if ( bson == Bson(null) ) {
-			getCounters().insert(serializeToBson(["name":T.stringof, "value":"0"]));
+			counters.insert(serializeToBson(["name":T.stringof, "value":"0"]));
 		}
 		this.settings = settings;
 		paginator = new Paginator!T(this.settings.postsOnPage);
@@ -23,7 +26,7 @@ class Manager(T)
 	T[] getAll(Bson query = Bson.emptyObject)
 	{
 		T[] ret;
-		foreach(pic; getCollection().find(query)) {
+		foreach(pic; collection.find(query)) {
 			auto p = fromBson(pic);
 			ret ~= p;
 		}
@@ -34,8 +37,8 @@ class Manager(T)
 	{
 		T[] ret;
 		// Workaround because there isn't MongoCursor.size() function. Applying count() to cursor removes all items from it.
-		auto cursor = getCollection().find(query);
-		totalCount = cast(int)(getCollection().find(query).count());
+		auto cursor = collection.find(query);
+		totalCount = cast(int)(collection.find(query).count());
 		// For some reasons we shouldn't use commented variant as it produces wrong results.
 		//cursor = cursor.limit(page*paginator.elementsOnPage).skip((page-1)*paginator.elementsOnPage);
 		cursor = cursor.skip((page-1)*paginator.elementsOnPage).limit(paginator.elementsOnPage);
@@ -48,57 +51,51 @@ class Manager(T)
 	
 	T get(int id)
 	{
-		return fromBson(getCollection().findOne(["id":id]));
+		return fromBson(collection.findOne(["id":id]));
 	}
 
 	T get(string[string] query)
 	{
-		return fromBson(getCollection().findOne(query));
+		return fromBson(collection.findOne(query));
 	}
 
 	bool have(string[string] query)
 	{
-		return getCollection().findOne(query) != Bson(null);
+		return collection.findOne(query) != Bson(null);
 	}
 
 	ulong getCount(Bson query)
 	{
-		return getCollection().count(query);
+		return collection.count(query);
 	}
 	
 	void add(T item)
 	{
 		logInfo("Adding item: "~toBson(item).toString());
-		getCollection();
-		getCollection().insert(toBson(item));
+		collection.insert(toBson(item));
 		increment();
 	}
 	
 	void remove(int id)
 	{
-		getCollection().remove(["id":id]);
+		collection.remove(["id":id]);
 	}
 
 	// Loop is represented as ["name":<type of stored value>,"value":<actual value of counter>].
 	int getNextIndex()
 	{
 		OptimisticLoop data;
-		deserializeBson( data, getCounters().findOne(["name":T.stringof]) );
+		deserializeBson( data, counters.findOne(["name":T.stringof]) );
 		return to!int(data.value);
 	}
 
 private:
-	MongoDatabase database;
-
-	/// Gets collection where values of type T are stored.
-	MongoCollection getCollection() { return database[T.stringof]; }
-
-	MongoCollection getCounters() { return database["counters"]; }
+	MongoCollection collection;
+	MongoCollection counters;
 
 	/// Pack value val to Bson.
 	Bson toBson(T val)
 	{
-		Bson[string] ret;
 		return serializeToBson(val);
 	}
 
@@ -123,7 +120,7 @@ private:
 			this.elementsOnPage = elementsOnPage;
 		}
 		
-		void init(int elementsCount)
+		void refresh(int elementsCount)
 		{
 			this.elementsCount = elementsCount;
 			lastPage = elementsCount % elementsOnPage == 0? elementsCount/elementsOnPage : elementsCount/elementsOnPage+1;
@@ -136,25 +133,13 @@ private:
 			return page;
 		}
 		
-		int getPrevPage()
-		{
-			return page == 1? 1:page-1;
-		}
+		int getPrevPage() { return page == 1? 1:page-1; }
 		
-		int getNextPage()
-		{
-			return page==lastPage?lastPage:page+1;
-		}
+		int getNextPage() { return page==lastPage?lastPage:page+1; }
 
-		int getFirstPage()
-		{
-			return 1;
-		}
+		int getFirstPage() {return 1; }
 
-		int getLastPage()
-		{
-			return lastPage;
-		}
+		int getLastPage() { return lastPage; }
 
 		/*int getMinElemOfPage(int page)
 		{
@@ -187,8 +172,8 @@ private:
 
 	void increment()
 	{
-		int val = getNextIndex();
-		getCounters().update(["name":T.stringof], ["$set":["value": to!string(to!int(val)+1)]]);
+		immutable int val = getNextIndex();
+		counters.update(["name":T.stringof], ["$set":["value": to!string(to!int(val)+1)]]);
 	}
-};
+}
 

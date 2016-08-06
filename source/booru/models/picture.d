@@ -1,8 +1,8 @@
-﻿module models.picture;
+module booru.models.picture;
 import std.datetime;
 import vibe.d;
-import models.manager;
 import derelict.freeimage.freeimage;
+import booru.manager;
 
 struct Picture
 {
@@ -41,7 +41,7 @@ struct Picture
 		return ret;
 	}+/
 
-};
+}
 
 /*class PictureManager : Manager!(Picture)
 {
@@ -54,7 +54,7 @@ struct Picture
 
 unittest 
 {
-	import std.format;
+	import std.format:format;
 	auto pics = new Manager!Picture();
 	Picture pic1, pic2;
 	pic1.id = 1;

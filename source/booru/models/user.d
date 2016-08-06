@@ -1,7 +1,6 @@
-module models.user;
+module booru.models.user;
 import std.datetime;
 import vibe.d;
-import models.bson_mixin;
 
 mixin template BsonConvertible()
 {
@@ -9,8 +8,7 @@ mixin template BsonConvertible()
 	{
 		Bson[string] ret;
 		//logInfo(serializeToBson(this).toString());
-		//return serializeToBson(this);
-		return Bson();
+		return serializeToBson(this);
 	}
 	
 	static typeof(this) fromBson(Bson bson)
@@ -45,9 +43,4 @@ struct User
 		deserializeBson(ret, bson);
 		return ret;
 	}*/
-}; 
-
-/*unittest {
-	User usr;
-	Bson bson = usr.toBson();
-}*/
+}
